@@ -1,0 +1,1057 @@
+swagger: '2.0'
+
+info:
+  version: "0.0.1"
+  title: Maintain API
+
+paths:
+  /local-land-charge:
+    post:
+      description: |
+        Add a single land charge to the registry
+      parameters:
+        -
+          in: body
+          name: Land Charge
+          required: true
+          schema:
+            type: object
+            properties:
+              location_web_address:
+                type: string
+              location_phone_number:
+                type: string
+              location_your_address:
+                type: string
+              location_email:
+                type: string
+              location_ref:
+                type: string
+              does_charge_expire:
+                type: string
+              expire_date:
+                type: string
+              charge_date:
+                type: string
+              charge_reason:
+                type: string
+                enum:
+                - 'Acceptance'
+                - 'Certificate'
+                - 'Covenants'
+                - 'Deed'
+                - 'Deed of modification'
+                - 'Notice'
+                - 'Order'
+                - 'Resolution'
+                - 'Scheme'
+                - 'Transfer'
+                - 'Undertaking'
+              location_additional_information:
+                type: string
+              location_geometry:
+                type: object
+                properties:
+                  features:
+                    $ref: '#/definitions/Features'
+                  type:
+                    type: string
+              provision:
+                type: string
+
+      responses:
+
+        202:
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              entry_number:
+                type: string
+              land_charge_id:
+                type: string
+              registration_date:
+                type: string
+
+        400:
+          description: Bad request
+
+        500:
+          description: Application error
+  /categories:
+    get:
+      summary: "Get all categories"
+      description: "Get all categories"
+      responses:
+        200:
+          description: "Successful"
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Planning
+                display-name:
+                  type: string
+                  example: planning
+                permission:
+                  type: string
+                  example: null
+    post:
+      summary: "Create a new category"
+      description: "Create a new category"
+      parameters:
+        -
+          in: body
+          name: Category
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Planning
+              display-name:
+                type: string
+                example: Planning
+              display-order:
+                type: integer
+                example: 1
+              permission:
+                type: string
+                example: "ADD LON"
+              provisions:
+                type: array
+                items:
+                  type: string
+                  example: "Agriculture Act 1947"
+              instruments:
+                type: array
+                items:
+                  type: string
+                  example: "Deed"
+      responses:
+        201:
+          description: "Successful"
+        400:
+          description: "Bad Request"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "'name' is a required property"
+              error_code:
+                type: number
+                example: 400"
+        404:
+          description: "Provision or instrument not found"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Instrument 'abc' does not exist.
+              error_code:
+                type: number
+                example: 404
+        409:
+          description: "Category already exists"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Category 'planning' already exists.
+              error_code:
+                type: number
+                example: 409
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+  /categories/{category}:
+    get:
+      summary: "Get category"
+      description: "Get category details"
+      parameters:
+      - name: category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning
+      responses:
+        200:
+          description: "Successful"
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Planning
+              display-name:
+                type: string
+                example: Planning
+              display-order:
+                type: integer
+                example: 1
+              permissions:
+                type: string
+                example: "ADD LON"
+              provisions:
+                type: array
+                items:
+                  type: string
+                  example: "Agriculture Act 1947"
+              instruments:
+                type: array
+                items:
+                  type: string
+                  example: "Deed"
+              sub-categories:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Change a Development
+                    display-name:
+                      type: string
+                      example: Change a Development
+                    permission:
+                      type: string
+                      example: null
+        404:
+          description: "Category not found"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Category 'planning' not found.
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+    delete:
+      summary: "Delete category"
+      description: "Delete category and all linked sub-categories"
+      parameters:
+      - name: category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning
+      responses:
+        204:
+          description: "Successful"
+        404:
+          description: "Category not found"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Category 'planning' not found.
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+    put:
+      summary: Update category
+      description: "Update category details"
+      parameters:
+      - name: category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning
+      - in: body
+        name: Category
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Planning
+            display-name:
+              type: string
+              example: Planning
+            display-order:
+              type: integer
+              example: 1
+            permission:
+              type: string
+              example: "ADD LON"
+            provisions:
+              type: array
+              items:
+                type: string
+                example: "Agriculture Act 1947"
+            instruments:
+              type: array
+              items:
+                type: string
+                example: "Deed"
+      responses:
+        204:
+          description: "Successful"
+        400:
+          description: "Bad Request"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "'name' is a required property"
+              error_code:
+                type: number
+                example: 400
+        404:
+          description: "Category, Instrument or provision not found"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Instrument 'abc' does not exist.
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+  /categories/{category}/sub-categories:
+    post:
+      summary: "Create a new sub category"
+      description: "Create a new sub category"
+      parameters:
+        - name: category
+          in: path
+          type: string
+          required: true
+          description: Category e.g. planning
+        - in: body
+          name: Category
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Planning
+              display-name:
+                type: string
+                example: Planning
+              display-order:
+                type: integer
+                example: 1
+              permission:
+                type: string
+                example: "ADD LON"
+              provisions:
+                type: array
+                items:
+                  type: string
+                  example: "Agriculture Act 1947"
+              instruments:
+                type: array
+                items:
+                  type: string
+                  example: "Deed"
+      responses:
+        201:
+          description: "Successful"
+        400:
+          description: "Bad Request"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "'name' is a required property"
+              error_code:
+                type: number
+                example: 400"
+        404:
+          description: "Parent, Provision or instrument not found"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Instrument 'abc' does not exist.
+              error_code:
+                type: number
+                example: 404
+        409:
+          description: "Category already exists"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Category 'planning' already exists.
+              error_code:
+                type: number
+                example: 409
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+  /categories/{category}/sub-categories/{sub-category}:
+    get:
+      summary: "Get sub category"
+      description: "Get sub category details"
+      parameters:
+      - name: category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning
+      - name: sub-category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning notices
+      responses:
+        200:
+          description: "Successful"
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Planning
+              display-name:
+                type: string
+                example: Planning
+              display-order:
+                type: integer
+                example: 1
+              permissions:
+                type: string
+                example: "ADD LON"
+              parent:
+                type: string
+                example: Planning
+              provisions:
+                type: array
+                items:
+                  type: string
+                  example: "Agriculture Act 1947"
+              instruments:
+                type: array
+                items:
+                  type: string
+                  example: "Deed"
+              sub-categories:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Change a Development
+                    display-name:
+                      type: string
+                      example: Change a Development
+                    permission:
+                      type: string
+                      example: null
+        404:
+          description: "Category or Parent not found"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Category 'planning' not found.
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+    put:
+      summary: Update sub category
+      description: "Update sub category details"
+      parameters:
+      - name: category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning
+      - name: sub-category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning notices
+      - in: body
+        name: Category
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Planning
+            display-name:
+              type: string
+              example: Planning
+            display-order:
+              type: integer
+              example: 1
+            permission:
+              type: string
+              example: "ADD LON"
+            provisions:
+              type: array
+              items:
+                type: string
+                example: "Agriculture Act 1947"
+            instruments:
+              type: array
+              items:
+                type: string
+                example: "Deed"
+      responses:
+        204:
+          description: "Successful"
+        400:
+          description: "Bad Request"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "'name' is a required property"
+              error_code:
+                type: number
+                example: 400
+        404:
+          description: "Category, Instrument or provision not found"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Instrument 'abc' does not exist.
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+    delete:
+      summary: "Delete sub category"
+      description: "Delete sub category and any linked sub-categories"
+      parameters:
+      - name: category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning
+      - name: sub-category
+        in: path
+        type: string
+        required: true
+        description: Category e.g. planning notices
+      responses:
+        204:
+          description: "Successful"
+        404:
+          description: "Category or sub-category not found"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Category 'planning' not found.
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+  /statutory-provisions:
+    get:
+      summary: "Get all statutory provisions"
+      description: "Get list of statutory provisions"
+      parameters:
+        - name: selectable
+          in: query
+          type: boolean
+          required: false
+          description: Indicates whether to return the full list of statutory provisions or just the list of provisions users can manually select from.  If missing full list returned.  If true or false this will only return the provisions marked as true or false
+      responses:
+        200:
+          description: "successful"
+          schema:
+            type: array
+            items:
+              type: string
+              example: "Building Act 1984 section 107"
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+    post:
+      summary: "Create a new statutory provision"
+      description: "Create a new statutory provision"
+      parameters:
+        -
+          in: body
+          name: Provision
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                example: "Building Act 1984 section 107"
+              selectable:
+                type: boolean
+                example: false
+      responses:
+        201:
+          description: "Successful"
+        409:
+          description: "Statutory provision already exists"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "Statutory provision 'Building Act 1984 section 107' already exists."
+              error_code:
+                type: number
+                example: 409
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+  /statutory-provisions/{statutory-provision}:
+    delete:
+      summary: "Delete statutory provision"
+      description: "Delete statutory provision"
+      parameters:
+      - name: statutory-provision
+        in: path
+        type: string
+        required: true
+        description: statutory-provision e.g. Building Act 1984 section 107
+      responses:
+        204:
+          description: "Successful"
+        404:
+          description: "Statutory provision does not exist"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "Statutory provision 'Building Act 1984 section 107' does not exist."
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+    put:
+      summary: "Update statutory provision"
+      description: "Update statutory provision"
+      parameters:
+      - name: statutory-provision
+        in: path
+        type: string
+        required: true
+        description: statutory-provision e.g. Building Act 1984 section 107
+      - in: body
+        name: provision
+        schema:
+          type: object
+          properties:
+            title:
+              type: string
+              example: "Building Act 1984 section 107"
+            selectable:
+              type: boolean
+              example: false
+      responses:
+        204:
+          description: "Successful"
+        404:
+          description: "Statutory provision does not exist"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "Statutory provision 'Building Act 1984 section 107' does not exist."
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+  /instruments:
+    get:
+      summary: "Get all instruments"
+      description: "Get list of instruments"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            type: array
+            items:
+              type: string
+              example: "Agreement"
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+    post:
+      summary: "Create a new instrument"
+      description: "Create a new instrument"
+      parameters:
+        -
+          in: body
+          name: Instrument-object
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Agreement"
+      responses:
+        201:
+          description: "Successful"
+        400:
+          description: "Bad request"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "Additional properties are not allowed ('abc' was unexpected)"
+              error_code:
+                type: number
+                example: 400
+        409:
+          description: "Instrument already exists"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "Instrument 'Deed' already exists."
+              error_code:
+                type: number
+                example: 409
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+  /instruments/{instrument}:
+    delete:
+      summary: "Delete instrument"
+      description: "Delete instrument"
+      parameters:
+      - name: instrument
+        in: path
+        type: string
+        required: true
+        description: instrument e.g. deed
+      - in: body
+        name: Instrument-object
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Agreement"
+      responses:
+        204:
+          description: "Successful"
+        404:
+          description: "Instrument does not exist"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "Instrument 'Deed' does not exist."
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+    put:
+      summary: Update instrument
+      description: Update istrument
+      parameters:
+      - name: instrument
+        in: path
+        type: string
+        required: true
+        description: instrument e.g. deed
+      responses:
+        204:
+          description: "Successful"
+        400:
+          description: "Bad request"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "Additional properties are not allowed ('abc' was unexpected)"
+              error_code:
+                type: number
+                example: 400
+        404:
+          description: "Instrument does not exist"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: "Instrument 'Deed' does not exist."
+              error_code:
+                type: number
+                example: 404
+        500:
+          description: "Server error"
+          schema:
+            type: object
+            properties:
+              error_message:
+                type: string
+                example: Something went wrong
+              error_code:
+                type: number
+                example: 500
+definitions:
+
+  Features:
+    type: object
+    properties:
+      features:
+        type: array
+        items:
+          type: object
+          properties:
+            geometry:
+              $ref: '#/definitions/Geometry'
+            properties:
+              type: object
+              properties:
+                id:
+                  type: integer
+            type:
+              type: string
+
+  Point2D:
+    type: array
+    minItems: 2
+    maxItems: 2
+    items:
+      type: number
+
+  Geometry:
+    type: object
+    description: Geometry defining the area of a land charge
+    discriminator: type
+    required:
+      - type
+    properties:
+      coordinates:
+        type: object
+        description: Should match the definition of; Point, LineString, Polygon, MultiPoint, MultiLineString, or MultiPolygon's coordinates.
+      type:
+        type: string
+        enum:
+        - 'Point'
+        - 'LineString'
+        - 'Polygon'
+        - 'MultiPoint'
+        - 'MultiLineString'
+        - 'MultiPolygon'
+        description: The geometry type.
+
+  Point:
+    type: object
+    description: GeoJSon geometry
+    properties:
+      coordinates:
+        $ref: '#/definitions/Point2D'
+
+  LineString:
+    type: object
+    description: GeoJSon geometry
+    properties:
+      coordinates:
+          $ref: '#/definitions/Point2D'
+
+  Polygon:
+    type: object
+    description: GeoJSon geometry
+    properties:
+      coordinates:
+        type: array
+        items:
+          type: array
+          items:
+            $ref: '#/definitions/Point2D'
+
+  MultiPoint:
+    type: object
+    description: GeoJSon geometry
+    properties:
+      coordinates:
+        type: array
+        items:
+          $ref: '#/definitions/Point2D'
+
+  MultiLineString:
+    type: object
+    description: GeoJSon geometry
+    properties:
+      coordinates:
+        type: array
+        items:
+          type: array
+          items:
+            $ref: '#/definitions/Point2D'
+
+  MultiPolygon:
+    type: object
+    description: GeoJSon geometry
+    properties:
+      coordinates:
+        type: array
+        items:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/Point2D'

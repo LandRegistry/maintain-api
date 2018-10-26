@@ -1,0 +1,14 @@
+# User-specific stuff:
+.idea/
+
+# Locally generated python files
+__pycache__/
+venv/
+/.cache/
+
+# Generated test files
+**/.coverage
+
+.project
+.pydevproject
+.DS_Store
